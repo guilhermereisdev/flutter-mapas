@@ -14,6 +14,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
+  Set<Marker> _marcadores = {};
 
   _onMapCreated(GoogleMapController googleMapController) {
     _controller.complete(googleMapController);
@@ -33,6 +34,40 @@ class _HomeState extends State<Home> {
     );
   }
 
+  _carregarMarcadores() {
+    Set<Marker> marcadoresLocais = {};
+    Marker marcadorShopping = Marker(
+      markerId: MarkerId("marcador-shopping"),
+      position: LatLng(-23.563370, -46.652923),
+      infoWindow: InfoWindow(title: "Shopping Cidade São Paulo"),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+      onTap: () {
+        print("Shopping clicado");
+      },
+    );
+    Marker marcadorCartorio = Marker(
+      markerId: MarkerId("marcador-cartorio"),
+      position: LatLng(-23.562868, -46.655874),
+      infoWindow: InfoWindow(title: "Cartório de Notas"),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      onTap: () {
+        print("Cartório clicado");
+      },
+    );
+    marcadoresLocais.add(marcadorShopping);
+    marcadoresLocais.add(marcadorCartorio);
+
+    setState(() {
+      _marcadores = marcadoresLocais;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarMarcadores();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,11 +82,12 @@ class _HomeState extends State<Home> {
       body: Container(
         child: GoogleMap(
           mapType: MapType.normal,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(-23.562436, -46.655005),
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(-23.563370, -46.652923),
             zoom: 16,
           ),
           onMapCreated: _onMapCreated,
+          markers: _marcadores,
         ),
       ),
     );
