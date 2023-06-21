@@ -15,9 +15,42 @@ class _HomeState extends State<Home> {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
   Set<Marker> _marcadores = {};
+  Set<Polygon> _polygons = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // _carregarMarcadores();
+    _carregarPoligonos();
+  }
 
   _onMapCreated(GoogleMapController googleMapController) {
     _controller.complete(googleMapController);
+  }
+
+  _carregarPoligonos() {
+    Set<Polygon> listaPolygons = {};
+    Polygon polygon1 = Polygon(
+      polygonId: PolygonId("polygon1"),
+      fillColor: Colors.transparent,
+      strokeColor: Colors.red,
+      strokeWidth: 10,
+      points: const [
+        LatLng(-23.561816, -46.652044),
+        LatLng(-23.563625, -46.653642),
+        LatLng(-23.564786, -46.652226),
+        LatLng(-23.563085, -46.650531),
+      ],
+      consumeTapEvents: true,
+      onTap: () {
+        print("clicado na área");
+      },
+    );
+    listaPolygons.add(polygon1);
+
+    setState(() {
+      _polygons = listaPolygons;
+    });
   }
 
   _movimentarCamera() async {
@@ -63,12 +96,6 @@ class _HomeState extends State<Home> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _carregarMarcadores();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -88,6 +115,7 @@ class _HomeState extends State<Home> {
           ),
           onMapCreated: _onMapCreated,
           markers: _marcadores,
+          polygons: _polygons,
         ),
       ),
     );
