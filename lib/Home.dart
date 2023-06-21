@@ -16,22 +16,50 @@ class _HomeState extends State<Home> {
       Completer<GoogleMapController>();
   Set<Marker> _marcadores = {};
   Set<Polygon> _polygons = {};
+  Set<Polyline> _polylines = {};
 
   @override
   void initState() {
     super.initState();
     // _carregarMarcadores();
-    _carregarPoligonos();
+    // _carregarPoligonos();
+    _carregarPolylines();
   }
 
   _onMapCreated(GoogleMapController googleMapController) {
     _controller.complete(googleMapController);
   }
 
+  _carregarPolylines() {
+    Set<Polyline> listaPolylines = {};
+    Polyline polyline = Polyline(
+      polylineId: const PolylineId("polyline"),
+      color: Colors.red,
+      width: 20,
+      startCap: Cap.roundCap,
+      endCap: Cap.roundCap,
+      jointType: JointType.round,
+      points: const [
+        LatLng(-23.561816, -46.652044),
+        LatLng(-23.563625, -46.653642),
+        LatLng(-23.564786, -46.652226),
+      ],
+      consumeTapEvents: true,
+      onTap: () {
+        print("clicado na área");
+      },
+    );
+    listaPolylines.add(polyline);
+
+    setState(() {
+      _polylines = listaPolylines;
+    });
+  }
+
   _carregarPoligonos() {
     Set<Polygon> listaPolygons = {};
     Polygon polygon1 = Polygon(
-      polygonId: PolygonId("polygon1"),
+      polygonId: const PolygonId("polygon1"),
       fillColor: Colors.transparent,
       strokeColor: Colors.red,
       strokeWidth: 10,
@@ -70,18 +98,18 @@ class _HomeState extends State<Home> {
   _carregarMarcadores() {
     Set<Marker> marcadoresLocais = {};
     Marker marcadorShopping = Marker(
-      markerId: MarkerId("marcador-shopping"),
-      position: LatLng(-23.563370, -46.652923),
-      infoWindow: InfoWindow(title: "Shopping Cidade São Paulo"),
+      markerId: const MarkerId("marcador-shopping"),
+      position: const LatLng(-23.563370, -46.652923),
+      infoWindow: const InfoWindow(title: "Shopping Cidade São Paulo"),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
       onTap: () {
         print("Shopping clicado");
       },
     );
     Marker marcadorCartorio = Marker(
-      markerId: MarkerId("marcador-cartorio"),
-      position: LatLng(-23.562868, -46.655874),
-      infoWindow: InfoWindow(title: "Cartório de Notas"),
+      markerId: const MarkerId("marcador-cartorio"),
+      position: const LatLng(-23.562868, -46.655874),
+      infoWindow: const InfoWindow(title: "Cartório de Notas"),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
       onTap: () {
         print("Cartório clicado");
@@ -116,6 +144,7 @@ class _HomeState extends State<Home> {
           onMapCreated: _onMapCreated,
           markers: _marcadores,
           polygons: _polygons,
+          polylines: _polylines,
         ),
       ),
     );
