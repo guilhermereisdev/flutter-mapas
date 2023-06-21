@@ -1,8 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -14,6 +13,11 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
+  CameraPosition _posicaoCamera = const CameraPosition(
+    target: LatLng(-20.17242854899768, -44.87074784952123),
+    zoom: 20,
+  );
+
   Set<Marker> _marcadores = {};
   Set<Polygon> _polygons = {};
   Set<Polyline> _polylines = {};
@@ -23,11 +27,65 @@ class _HomeState extends State<Home> {
     super.initState();
     // _carregarMarcadores();
     // _carregarPoligonos();
-    _carregarPolylines();
+    // _carregarPolylines();
+    // _recuperarLocalizacaoAtual();
+    // _movimentarCamera();
+    _adicionarListenerLocalizacao();
   }
 
   _onMapCreated(GoogleMapController googleMapController) {
     _controller.complete(googleMapController);
+  }
+
+  _adicionarListenerLocalizacao() {
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 1,
+    );
+    StreamSubscription<Position> positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position? position) {
+      if (position != null) {
+        print(
+            'Position is ${position.latitude.toString()}, ${position.longitude.toString()}');
+        setState(() {
+          _posicaoCamera = CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: 16,
+          );
+        });
+        _movimentarCamera();
+      } else {
+        print("Position is null");
+      }
+    });
+  }
+
+  _recuperarLocalizacaoAtual() async {
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.best,
+      forceAndroidLocationManager: true,
+    );
+    setState(() {
+      _posicaoCamera = CameraPosition(
+        // target: LatLng(-20.17242854899768, -44.87074784952123),
+        target: LatLng(position.latitude, position.longitude),
+        zoom: 20,
+      );
+    });
+    // print("Localização atual: $position");
+  }
+
+  _movimentarCamera() async {
+    GoogleMapController googleMapController = await _controller.future;
+    googleMapController.animateCamera(
+      CameraUpdate.newCameraPosition(_posicaoCamera),
+    );
+  }
+
+  _irParaLocalizacaoAtual() {
+    _recuperarLocalizacaoAtual();
+    _movimentarCamera();
   }
 
   _carregarPolylines() {
@@ -81,20 +139,6 @@ class _HomeState extends State<Home> {
     });
   }
 
-  _movimentarCamera() async {
-    GoogleMapController googleMapController = await _controller.future;
-    googleMapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        const CameraPosition(
-          target: LatLng(-23.502436, -46.655005),
-          zoom: 16,
-          tilt: 0,
-          bearing: 30,
-        ),
-      ),
-    );
-  }
-
   _carregarMarcadores() {
     Set<Marker> marcadoresLocais = {};
     Marker marcadorShopping = Marker(
@@ -130,21 +174,19 @@ class _HomeState extends State<Home> {
         title: const Text("Mapas e Geolocalização"),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _movimentarCamera,
-        child: const Icon(Icons.done),
+        onPressed: _irParaLocalizacaoAtual,
+        child: const Icon(Icons.account_circle_rounded),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       body: Container(
         child: GoogleMap(
           mapType: MapType.normal,
-          initialCameraPosition: const CameraPosition(
-            target: LatLng(-23.563370, -46.652923),
-            zoom: 16,
-          ),
+          initialCameraPosition: _posicaoCamera,
           onMapCreated: _onMapCreated,
           markers: _marcadores,
           polygons: _polygons,
           polylines: _polylines,
+          myLocationEnabled: true,
         ),
       ),
     );
